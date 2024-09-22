@@ -2,6 +2,8 @@ package ekm.RESTNode.server.services;
 
 import ekm.requests.JsonBody;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 public class Message extends JsonBody {
     public final String uuid;
     public final String serviceName;
@@ -9,6 +11,7 @@ public class Message extends JsonBody {
     public Response response;
     public final String path;
     public final String type;
+    public AtomicBoolean isProceed = new AtomicBoolean(false);
 
     public Message(String uuid, String serviceName, Request request, String path, String type) {
         this.uuid = uuid;

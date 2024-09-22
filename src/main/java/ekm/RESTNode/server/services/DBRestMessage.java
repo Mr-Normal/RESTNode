@@ -16,7 +16,7 @@ public class DBRestMessage {
         return services.get(serviceName).remove(uuid);
     }
 
-    public boolean isHaveAny(String serviceName) {
+    public boolean isHaveUnprocessed(String serviceName) {
         if (!services.containsKey(serviceName)) {
             return false;
         } else {
@@ -24,32 +24,43 @@ public class DBRestMessage {
             if (messageMap == null) {
                 return false;
             } else {
-                return messageMap.size() > 0;
+                if (messageMap.size() < 1) {
+                    return false;
+                } else {
+                    for (Map.Entry<String, Message> entry : services.get(serviceName).entrySet()) {
+                        if (!entry.getValue().isProceed.get()) {
+                            return true;
+                        }
+                    }
+                    return false;
+                }
             }
         }
     }
 
     public Message getFirst(String serviceName) {
-        if (isHaveAny(serviceName)) {
+        if (isHaveUnprocessed(serviceName)) {
             Map<String, Message> messageMap = services.get(serviceName);
             for (Map.Entry<String, Message> entry : messageMap.entrySet()) {
-                return entry.getValue();
+                if (!entry.getValue().isProceed.get()) {
+                    return entry.getValue();
+                }
             }
         }
         throw new IllegalArgumentException("Не удалось найти записи для сервиса " + serviceName);
     }
 
-    public Message get(String serviceName, String uuid){
+    public Message get(String serviceName, String uuid) {
         return services.get(serviceName).get(uuid);
     }
 
     public UUID add(String serviceName, Request request, String path, String type) {
         UUID uuid = UUID.randomUUID();
         Message message = new Message(uuid.toString(), serviceName, request, path, type);
-        if(!services.containsKey(serviceName)){
+        if (!services.containsKey(serviceName)) {
             services.put(serviceName, new ConcurrentHashMap<>());
         }
-        services.get(message).put(uuid.toString(), message);
+        services.get(serviceName).put(uuid.toString(), message);
         return uuid;
     }
 

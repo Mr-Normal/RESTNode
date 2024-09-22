@@ -5,17 +5,21 @@ import ekm.RESTNode.server.services.Message;
 import ekm.requests.HttpRequest;
 import ekm.tools.tools.parsing.json.GSON;
 import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicBoolean;
 
+@Slf4j
 @Configuration
 public class Agent {
     private final NodeAPI passiveNodeAPI;
     private final ConfigNode configNode;
+    private AtomicBoolean isProcessed = new AtomicBoolean(false);
 
     @Autowired
     public Agent(ConfigNode configNode) {
@@ -66,17 +70,24 @@ public class Agent {
     private String setPathVars(String serviceName, String uuid, String path) {
         String res = path.replaceFirst("\\{serviceName}", serviceName);
         if (uuid != null) {
-            res.replaceFirst("\\{uuid}", uuid);
+            res = res.replaceFirst("\\{uuid}", uuid);
         }
         return res;
     }
 
-    @Scheduled(fixedDelay = 100)
+    @Scheduled(fixedDelay = 1000)
     public void handleNext() {
-        if(!configNode.getIsServer()){
-            for (ServiceData serviceData : configNode.getActive()) {
-                Message request = getRequest(serviceData.getName());
-                sendResponse(handleRequest(request), request);
+        if(!isProcessed.get()){
+            if(!configNode.getIsServer()){
+                for (ServiceData serviceData : configNode.getActive()) {
+                    Message request = getRequest(serviceData.getName());
+                    if(request!=null){
+                        log.info("Processed: " + serviceData.getName());
+                        isProcessed.set(true);
+                        sendResponse(handleRequest(request), request);
+                        isProcessed.set(false);
+                    }
+                }
             }
         }
     }

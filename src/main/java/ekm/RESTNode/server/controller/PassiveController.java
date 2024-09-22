@@ -51,7 +51,7 @@ public class PassiveController {
             HttpServletRequest httpServletRequest,
             @PathVariable String serviceName
     ) {
-        return getResponseAll(requestBody, headers, httpServletRequest, "POST", serviceName);
+        return getResponseAll(requestBody, headers, httpServletRequest, "GET", serviceName);
     }
 
     @PostMapping("/api/{serviceName}/add/request/**")
@@ -61,7 +61,7 @@ public class PassiveController {
             HttpServletRequest httpServletRequest,
             @PathVariable String serviceName
     ) {
-        return getResponseAll(requestBody, headers, httpServletRequest, "GET", serviceName);
+        return getResponseAll(requestBody, headers, httpServletRequest, "POST", serviceName);
     }
 
     private ResponseEntity<byte[]> getResponseAll(
@@ -75,7 +75,7 @@ public class PassiveController {
         AddReqData data = new AddReqData(
                 serviceName,
                 request,
-                SimpleParse.after("add/request/", httpServletRequest.getContextPath()),
+                SimpleParse.after("add/request/", httpServletRequest.getRequestURI()),
                 requestType
         );
         return serviceAddRequest.handle(data);
